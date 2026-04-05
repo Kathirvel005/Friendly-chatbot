@@ -1,0 +1,202 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body.dark {
+  --bg: #0f172a;
+  --bg2: #1e293b;
+  --card: rgba(255,255,255,0.08);
+  --text: #ffffff;
+  --muted: #cbd5e1;
+  --border: rgba(255,255,255,0.15);
+  --accent: linear-gradient(135deg, #8b5cf6, #ec4899);
+}
+
+body.light {
+  --bg: #f8fafc;
+  --bg2: #e2e8f0;
+  --card: rgba(255,255,255,0.85);
+  --text: #0f172a;
+  --muted: #475569;
+  --border: rgba(15,23,42,0.12);
+  --accent: linear-gradient(135deg, #7c3aed, #db2777);
+}
+
+body {
+  background: linear-gradient(135deg, var(--bg), var(--bg2));
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  padding: 20px;
+  border-right: 1px solid var(--border);
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+}
+
+.logo-card, .profile-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.logo-card h1 {
+  margin-bottom: 8px;
+}
+
+.logo-card p,
+.profile-card p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.side-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-actions button,
+.chat-input-area button,
+.modal-card button {
+  padding: 12px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  background: var(--accent);
+  color: white;
+  font-weight: bold;
+}
+
+.main-area {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.topbar {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.04);
+}
+
+.topbar p {
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.chat-box {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.message {
+  max-width: 75%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.message.ai {
+  background: var(--card);
+  border: 1px solid var(--border);
+  align-self: flex-start;
+}
+
+.message.user {
+  background: var(--accent);
+  align-self: flex-end;
+  color: white;
+}
+
+.typing {
+  display: none;
+  padding: 0 20px 10px;
+  color: var(--muted);
+}
+
+.chat-input-area {
+  display: flex;
+  gap: 10px;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.chat-input-area input,
+.modal-card input,
+.modal-card select {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+  outline: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,6,23,0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-card {
+  width: 90%;
+  max-width: 430px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+#authMessage, #setupMessage {
+  color: #fda4af;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .message {
+    max-width: 90%;
+  }
+}

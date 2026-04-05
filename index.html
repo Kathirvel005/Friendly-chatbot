@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Companion Ultra</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dark">
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo-card">
+        <h1>AI Companion Ultra</h1>
+        <p>Memory • Multilanguage • Real-person chat style</p>
+      </div>
+
+      <div class="profile-card">
+        <h3>Your Profile</h3>
+        <p><strong>Name:</strong> <span id="profileName">-</span></p>
+        <p><strong>Nickname:</strong> <span id="profileNickname">-</span></p>
+        <p><strong>Gender:</strong> <span id="profileGender">-</span></p>
+        <p><strong>Mode:</strong> <span id="profileMode">-</span></p>
+        <p><strong>Language:</strong> <span id="profileLanguage">-</span></p>
+        <p><strong>AI Engine:</strong> <span id="profileAI">Local Smart Reply</span></p>
+      </div>
+
+      <div class="side-actions">
+        <button onclick="switchMode('Friendship')">🤝 Friendship</button>
+        <button onclick="switchMode('Lover')">❤️ Lover</button>
+        <button onclick="switchMode('Flirty')">😉 Flirty</button>
+        <button onclick="toggleTheme()">🌗 Theme</button>
+        <button onclick="startVoiceInput()">🎤 Voice Input</button>
+        <button onclick="toggleVoiceReply()">🔊 Voice Reply</button>
+        <button onclick="loadHistory()">🕘 Load History</button>
+        <button onclick="logout()">🚪 Logout</button>
+      </div>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div>
+          <h2 id="topTitle">Hey 👋 I’m your AI companion. Let’s get to know each other 😊</h2>
+          <p id="topSub">Login and start chatting</p>
+        </div>
+      </header>
+
+      <section class="chat-box" id="chatBox">
+        <div class="message ai">Hey 👋 I’m your AI companion. Let’s get to know each other 😊</div>
+      </section>
+
+      <div class="typing" id="typingIndicator">AI is typing...</div>
+
+      <footer class="chat-input-area">
+        <input type="text" id="messageInput" placeholder="Type your message..." onkeydown="handleKey(event)">
+        <button onclick="sendMessage()">Send</button>
+      </footer>
+    </main>
+  </div>
+
+  <div class="modal" id="authModal">
+    <div class="modal-card">
+      <h2>Login / Register</h2>
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+      <div class="modal-actions">
+        <button onclick="registerUser()">Register</button>
+        <button onclick="loginUser()">Login</button>
+      </div>
+      <p id="authMessage"></p>
+    </div>
+  </div>
+
+  <div class="modal hidden" id="setupModal">
+    <div class="modal-card">
+      <h2>User Setup</h2>
+      <input type="text" id="name" placeholder="What is your name?">
+      <input type="text" id="nickname" placeholder="Nickname (optional)">
+      <select id="gender">
+        <option value="">Choose Gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+      </select>
+      <select id="mode">
+        <option value="">Choose Mode</option>
+        <option value="Friendship">Friendship Mode 🤝</option>
+        <option value="Lover">Lover Mode ❤️</option>
+        <option value="Flirty">Flirty Mode 😉</option>
+      </select>
+      <select id="language">
+        <option value="English">English</option>
+        <option value="Tamil">Tamil</option>
+        <option value="Mixed">Tamil + English</option>
+      </select>
+      <button onclick="saveSetup()">Save Setup</button>
+      <p id="setupMessage"></p>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
