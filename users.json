@@ -1,0 +1,15 @@
+{
+    "kathirvel": {
+        "password": "qwerty",
+        "name": "Kathirvel T",
+        "gender": "Male",
+        "mode": "Friendship",
+        "nickname": "Cap",
+        "language": "Tamil",
+        "memory": {
+            "favorite_things": [],
+            "important_notes": [],
+            "style_hint": ""
+        }
+    }
+}
