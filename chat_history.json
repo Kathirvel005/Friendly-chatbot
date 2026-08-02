@@ -15,5 +15,12 @@
             "user": "nalla irukeya",
             "ai": "Okay Cap, continue 😄 I’m still thinking about what you said before too."
         }
+    ],
+    "testuser": [
+        {
+            "time": "2026-08-02 23:58:48",
+            "user": "who are you",
+            "ai": "I’m here to chat with you like a real companion 💫"
+        }
     ]
 }

@@ -3,6 +3,8 @@ import json
 import os
 import random
 from datetime import datetime
+import urllib.request
+import urllib.error
 from openai import OpenAI
 
 app = Flask(__name__)
@@ -107,6 +109,11 @@ def ensure_user_defaults(user):
         "mode": "Friendship",
         "nickname": "",
         "language": "English",
+        "api_provider": "local",
+        "openai_key": "",
+        "gemini_key": "",
+        "openai_model": "gpt-4o-mini",
+        "gemini_model": "gemini-2.5-flash",
         "memory": {
             "favorite_things": [],
             "important_notes": [],
@@ -363,22 +370,78 @@ Recent chat context:
 
 
 def ai_reply_with_openai(user, user_text, recent_history):
+    openai_key = user.get("openai_key", "").strip()
+    if not openai_key:
+        openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+    
+    if not openai_key:
+        return local_fallback_reply(user, user_text, recent_history)
+        
+    model = user.get("openai_model", "gpt-4o-mini")
     system_prompt = build_system_prompt(user, recent_history)
+    
     try:
-        response = client.responses.create(
-            model=OPENAI_MODEL,
-            input=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_text}
-            ],
+        from openai import OpenAI
+        temp_client = OpenAI(api_key=openai_key)
+        messages = [{"role": "system", "content": system_prompt}]
+        for item in recent_history[-4:]:
+            messages.append({"role": "user", "content": item.get("user", "")})
+            messages.append({"role": "assistant", "content": item.get("ai", "")})
+        messages.append({"role": "user", "content": user_text})
+        
+        response = temp_client.chat.completions.create(
+            model=model,
+            messages=messages,
             temperature=0.95
         )
-        text = getattr(response, "output_text", "").strip()
+        text = response.choices[0].message.content.strip()
         if text:
             return text
+    except Exception as e:
+        print(f"OpenAI API error: {e}")
+        
+    return local_fallback_reply(user, user_text, recent_history)
+
+
+def ai_reply_with_gemini(user, user_text, recent_history):
+    gemini_key = user.get("gemini_key", "").strip()
+    if not gemini_key:
+        gemini_key = os.getenv("GEMINI_API_KEY", "").strip()
+        
+    if not gemini_key:
         return local_fallback_reply(user, user_text, recent_history)
-    except Exception:
-        return local_fallback_reply(user, user_text, recent_history)
+        
+    model = user.get("gemini_model", "gemini-2.5-flash")
+    system_prompt = build_system_prompt(user, recent_history)
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={gemini_key}"
+    
+    payload = {
+        "contents": [
+            {
+                "parts": [{"text": f"System context:\n{system_prompt}\n\nUser message: {user_text}"}]
+            }
+        ],
+        "generationConfig": {
+            "temperature": 0.95,
+        }
+    }
+    
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as response:
+            res_data = json.loads(response.read().decode("utf-8"))
+            text = res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+            if text:
+                return text
+    except Exception as e:
+        print(f"Gemini API error: {e}")
+        
+    return local_fallback_reply(user, user_text, recent_history)
 
 
 @app.route("/")
@@ -490,8 +553,11 @@ def chat():
 
     recent_history = get_recent_history(username, limit=8)
 
-    if client:
+    provider = user.get("api_provider", "local")
+    if provider == "openai":
         reply = ai_reply_with_openai(user, message, recent_history)
+    elif provider == "gemini":
+        reply = ai_reply_with_gemini(user, message, recent_history)
     else:
         reply = local_fallback_reply(user, message, recent_history)
 
@@ -511,7 +577,7 @@ def chat():
         "reply": reply,
         "nickname": user.get("nickname", ""),
         "language": user.get("language", "English"),
-        "ai_enabled": bool(client)
+        "ai_enabled": provider in ["openai", "gemini"]
     })
 
 
@@ -536,7 +602,68 @@ def profile():
     users[username] = user
     save_json(USERS_FILE, users)
 
-    return jsonify({"success": True, "profile": user, "ai_enabled": bool(client)})
+    redacted_profile = user.copy()
+    if redacted_profile.get("openai_key"):
+        key = redacted_profile["openai_key"]
+        redacted_profile["openai_key"] = key[:4] + "..." + key[-4:] if len(key) > 8 else "********"
+    if redacted_profile.get("gemini_key"):
+        key = redacted_profile["gemini_key"]
+        redacted_profile["gemini_key"] = key[:4] + "..." + key[-4:] if len(key) > 8 else "********"
+
+    return jsonify({
+        "success": True, 
+        "profile": redacted_profile, 
+        "ai_enabled": user.get("api_provider", "local") in ["openai", "gemini"]
+    })
+
+
+@app.route("/save_settings", methods=["POST"])
+def save_settings():
+    username = session.get("username")
+    if not username:
+        return jsonify({"success": False, "message": "Please login first."})
+
+    data = request.get_json()
+    provider = data.get("api_provider", "local").strip()
+    openai_key = data.get("openai_key", "").strip()
+    gemini_key = data.get("gemini_key", "").strip()
+    openai_model = data.get("openai_model", "gpt-4o-mini").strip()
+    gemini_model = data.get("gemini_model", "gemini-2.5-flash").strip()
+
+    users = load_json(USERS_FILE)
+    user = ensure_user_defaults(users.get(username, {}))
+
+    user["api_provider"] = provider
+    user["openai_model"] = openai_model
+    user["gemini_model"] = gemini_model
+
+    if openai_key and not ("..." in openai_key or "********" in openai_key):
+        user["openai_key"] = openai_key
+    elif not openai_key:
+        user["openai_key"] = ""
+
+    if gemini_key and not ("..." in gemini_key or "********" in gemini_key):
+        user["gemini_key"] = gemini_key
+    elif not gemini_key:
+        user["gemini_key"] = ""
+
+    users[username] = user
+    save_json(USERS_FILE, users)
+
+    return jsonify({"success": True, "message": "Settings saved successfully."})
+
+
+@app.route("/clear_history", methods=["POST"])
+def clear_history():
+    username = session.get("username")
+    if not username:
+        return jsonify({"success": False, "message": "Please login first."})
+
+    chats = load_json(CHAT_FILE)
+    chats[username] = []
+    save_json(CHAT_FILE, chats)
+
+    return jsonify({"success": True, "message": "Chat history cleared successfully."})
 
 
 @app.route("/logout", methods=["POST"])

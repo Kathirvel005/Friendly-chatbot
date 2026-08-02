@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Companion Ultra</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dark">
+
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo-card">
+        <div class="logo-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <h1>Companion Ultra</h1>
+        <p>Memory • Multilanguage • Real-person chat style</p>
+      </div>
+
+      <div class="profile-card">
+        <div class="avatar-header">
+          <div class="user-avatar-badge" id="profileAvatarBadge"><i class="fa-solid fa-user-astronaut"></i></div>
+          <h3>Your Profile</h3>
+        </div>
+        <div class="profile-details">
+          <p><i class="fa-solid fa-id-card"></i> <strong>Name:</strong> <span id="profileName">-</span></p>
+          <p><i class="fa-solid fa-face-smile"></i> <strong>Nickname:</strong> <span id="profileNickname">-</span></p>
+          <p><i class="fa-solid fa-venus-mars"></i> <strong>Gender:</strong> <span id="profileGender">-</span></p>
+          <p><i class="fa-solid fa-heart-pulse"></i> <strong>Mode:</strong> <span id="profileMode">-</span></p>
+          <p><i class="fa-solid fa-language"></i> <strong>Lang:</strong> <span id="profileLanguage">-</span></p>
+          <p><i class="fa-solid fa-microchip"></i> <strong>Engine:</strong> <span id="profileAI">Local Smart Reply</span></p>
+        </div>
+      </div>
+
+      <div class="side-actions">
+        <div class="actions-title">Chat Mode</div>
+        <div class="mode-buttons">
+          <button onclick="switchMode('Friendship')" id="btnFriendship"><i class="fa-solid fa-handshake"></i> Friendship</button>
+          <button onclick="switchMode('Lover')" id="btnLover"><i class="fa-solid fa-heart"></i> Lover</button>
+          <button onclick="switchMode('Flirty')" id="btnFlirty"><i class="fa-solid fa-wand-magic"></i> Flirty</button>
+        </div>
+        
+        <div class="actions-title">Settings & Audio</div>
+        <button onclick="openSettings()"><i class="fa-solid fa-gears"></i> Engine Settings</button>
+        <button onclick="startVoiceInput()"><i class="fa-solid fa-microphone"></i> Voice Input</button>
+        <button onclick="toggleVoiceReply()" id="btnVoiceReply"><i class="fa-solid fa-volume-high"></i> Voice Reply: On</button>
+        
+        <div class="actions-title">Account</div>
+        <button onclick="toggleTheme()" class="btn-theme"><i class="fa-solid fa-circle-half-stroke"></i> Switch Theme</button>
+        <button onclick="clearChatHistory()" class="btn-danger"><i class="fa-solid fa-trash-can"></i> Clear History</button>
+        <button onclick="logout()" class="btn-logout"><i class="fa-solid fa-door-open"></i> Logout</button>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <main class="main-area">
+      <header class="topbar">
+        <div class="topbar-content">
+          <h2 id="topTitle">Hey 👋 Let's get to know each other 😊</h2>
+          <p id="topSub">Login and start chatting</p>
+        </div>
+      </header>
+
+      <section class="chat-box" id="chatBox">
+        <!-- Messages loaded dynamically -->
+      </section>
+
+      <!-- Bouncing Dot Typing Indicator -->
+      <div class="typing-indicator-container" id="typingIndicator">
+        <div class="typing-bubble">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+      <footer class="chat-input-area">
+        <input type="text" id="messageInput" placeholder="Send a message..." onkeydown="handleKey(event)" autocomplete="off">
+        <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Auth Modal -->
+  <div class="modal" id="authModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="logo-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <h2>Welcome to AI Companion</h2>
+        <p>Sign in or create a new profile to continue</p>
+      </div>
+      <div class="input-group">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" id="username" placeholder="Username">
+      </div>
+      <div class="input-group">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="password" placeholder="Password">
+      </div>
+      <div class="modal-actions">
+        <button onclick="loginUser()" class="btn-primary">Login</button>
+        <button onclick="registerUser()" class="btn-secondary">Register</button>
+      </div>
+      <p id="authMessage"></p>
+    </div>
+  </div>
+
+  <!-- Setup Modal -->
+  <div class="modal hidden" id="setupModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Setup Companion Profile</h2>
+        <p>Help your AI companion understand who you are</p>
+      </div>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="name" placeholder="What should we call you?">
+      </div>
+      <div class="form-group">
+        <label>Nickname (Optional)</label>
+        <input type="text" id="nickname" placeholder="A cozy name for chat">
+      </div>
+      <div class="form-group">
+        <label>Gender</label>
+        <select id="gender">
+          <option value="">Choose Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Initial Chat Mode</label>
+        <select id="mode">
+          <option value="Friendship">Friendship Mode 🤝</option>
+          <option value="Lover">Lover Mode ❤️</option>
+          <option value="Flirty">Flirty Mode 😉</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Language</label>
+        <select id="language">
+          <option value="English">English</option>
+          <option value="Tamil">Tamil</option>
+          <option value="Mixed">Tamil + English</option>
+        </select>
+      </div>
+      <button onclick="saveSetup()" class="btn-primary">Save & Let's Start!</button>
+      <p id="setupMessage"></p>
+    </div>
+  </div>
+
+  <!-- Engine Settings Modal -->
+  <div class="modal hidden" id="settingsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>AI Engine Configuration</h2>
+        <p>Switch between local and high-performance AI engines</p>
+      </div>
+      <div class="form-group">
+        <label>AI Engine Provider</label>
+        <select id="apiProvider" onchange="toggleApiFields()">
+          <option value="local">Local Smart Reply (Offline fallback)</option>
+          <option value="openai">OpenAI GPT</option>
+          <option value="gemini">Google Gemini</option>
+        </select>
+      </div>
+      
+      <!-- OpenAI Fields -->
+      <div class="api-fields hidden" id="openaiFields">
+        <div class="form-group">
+          <label>OpenAI API Key</label>
+          <input type="password" id="openaiKey" placeholder="sk-proj-...">
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <select id="openaiModel">
+            <option value="gpt-4o-mini">gpt-4o-mini (Recommended)</option>
+            <option value="gpt-4o">gpt-4o</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Gemini Fields -->
+      <div class="api-fields hidden" id="geminiFields">
+        <div class="form-group">
+          <label>Gemini API Key</label>
+          <input type="password" id="geminiKey" placeholder="AIzaSy...">
+        </div>
+        <div class="form-group">
+          <label>Model</label>
+          <select id="geminiModel">
+            <option value="gemini-2.5-flash">gemini-2.5-flash (Recommended)</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button onclick="saveSettings()" class="btn-primary">Save Settings</button>
+        <button onclick="closeSettings()" class="btn-secondary">Close</button>
+      </div>
+      <p id="settingsMessage"></p>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
